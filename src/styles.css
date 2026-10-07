@@ -97,6 +97,7 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  padding-top: 1vw;
 }
 .nav-item {
   height: 44px;

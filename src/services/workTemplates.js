@@ -256,7 +256,7 @@ export async function downloadWorkTemplate(template, employeeId) {
 
   return withSession(async (token) => {
     const scriptUrl = new URL(
-      apiUrl(`/script/${encodeURIComponent('Export Template')}`),
+      apiUrl(`/script/${encodeURIComponent('업무양식 내보내기')}`),
       window.location.origin,
     );
     // FileMaker script uses JSONGetElement(parameter; 1) and ; 2), so send
@@ -277,7 +277,7 @@ export async function downloadWorkTemplate(template, employeeId) {
     const base64 = payload.response?.scriptResult;
     if (typeof base64 !== 'string' || !base64.trim()) {
       throw new Error(
-        '스크립트 결과가 비어 있습니다. Export Template 스크립트의 마지막 단계가 텍스트 결과를 반환하는지 확인해 주세요.',
+        '스크립트 결과가 비어 있습니다. 업무양식 내보내기 스크립트의 마지막 단계가 텍스트 결과를 반환하는지 확인해 주세요.',
       );
     }
 

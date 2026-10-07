@@ -258,10 +258,7 @@ export default function DashboardPage({
       </section>
       <footer className="page-footer">
         <span>© ARA Workspace</span>
-        <span>업무의 시작과 끝, ARA와 함께</span>
-        <button onClick={() => showToast('도움말을 준비하고 있어요.')}>
-          <CircleHelp size={14} /> 도움말
-        </button>
+        <span>업무의 시작과 끝, ARA와 함께</span>        
       </footer>
     </div>
   );

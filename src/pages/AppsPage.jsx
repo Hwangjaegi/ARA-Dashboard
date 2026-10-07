@@ -1,57 +1,36 @@
-import {
-  CloudUpload,
-  Download,
-  Settings2,
-  Sparkles,
-} from 'lucide-react';
+import { useEffect } from 'react';
 
-export default function AppsPage({ showToast, alternate = false }) {
+const WEBDIRECT_URL = 'https://fms.aralogistic.com/fmi/webd/ARAERP.fmp12';
+
+export default function AppsPage({ employeeId, scriptName }) {
+  const url = new URL(WEBDIRECT_URL);
+  if (employeeId) {
+    url.searchParams.set('script', scriptName);
+    url.searchParams.set('param', String(employeeId));
+  }
+
+  useEffect(() => {
+    const scriptParameter = url.searchParams.get('param');
+    console.info('[ARA WebDirect] 스크립트 호출 정보', {
+      script: url.searchParams.get('script') || '(미설정)',
+      employeeId: employeeId || '(비어 있음)',
+      scriptParameter: scriptParameter || '(비어 있음)',
+      iframeUrl: url.href,
+    });
+    if (!employeeId) {
+      console.warn('[ARA WebDirect] user.employeeId가 없어 스크립트 매개변수를 전달하지 못했습니다.');
+    }
+  }, [employeeId, scriptName, url.href]);
+
   return (
-    <div className={`content-wrap subpage${alternate ? '' : ' apps-page'}`}>
-      {alternate && (
-        <>
-          <div className="eyebrow">
-            ARA WORKSPACE <span className="eyebrow-dot" /> RESOURCES
-          </div>
-          <h1>업무 자료실</h1>
-          <p className="subpage-lede">팀 업무에 필요한 서식과 자료를 한 곳에서 확인하세요.</p>
-        </>
-      )}
-      {alternate ? (
-        <div className="panel resource-empty">
-          <div className="empty-icon">
-            <CloudUpload size={25} />
-          </div>
-          <h2>자료를 준비하고 있어요</h2>
-          <p>FileMaker에 저장된 공용 서식과 업무 자료가 이곳에 표시됩니다.</p>
-          <button
-            className="button-primary"
-            onClick={() => showToast('FileMaker 자료실 연동이 필요합니다.')}
-          >
-            <Download size={15} /> 자료실 새로고침
-          </button>
-        </div>
-      ) : (
-        <iframe
-          className="filemaker-webdirect-frame"
-          src="https://fms.aralogistic.com/fmi/webd/ARAERP.fmp12"
-          title="ARA ERP FileMaker WebDirect"
-          allow="clipboard-read; clipboard-write; fullscreen"
-          allowFullScreen
-        />
-      )}
-      {alternate && <div className="panel apps-info">
-        <div className="info-spark">
-          <Sparkles size={18} />
-        </div>
-        <div>
-          <strong>나만의 업무 환경을 만들어 보세요</strong>
-          <p>필요한 도구와 서식을 빠르게 찾을 수 있도록 정리하고 있어요.</p>
-        </div>
-        <button onClick={() => showToast('환경 설정은 준비 중이에요.')}>
-          <Settings2 size={16} />
-        </button>
-      </div>}
+    <div className="content-wrap subpage apps-page">
+      <iframe
+        className="filemaker-webdirect-frame"
+        src={url.href}
+        title="ARA FileMaker WebDirect"
+        allow="clipboard-read; clipboard-write; fullscreen"
+        allowFullScreen
+      />
     </div>
   );
 }

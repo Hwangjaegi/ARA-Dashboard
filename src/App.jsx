@@ -380,8 +380,7 @@ function App() {
           <span className="brand-rule" />
           <span className="brand-caption">WORKSPACE</span>
         </div>
-        <nav className="main-nav">
-          <p className="nav-caption">MENU</p>
+        <nav className="main-nav">          
           <NavItem
             active={page === 'MY DASHBOARD'}
             icon={LayoutDashboard}
@@ -390,13 +389,13 @@ function App() {
             MY WORKSPACE
           </NavItem>
           <NavItem
-            active={page === 'APPS'}
+            active={page === 'ERP'}
             icon={BriefcaseBusiness}
-            onClick={() => setPage('APPS')}
+            onClick={() => setPage('ERP')}
           >
             ERP
           </NavItem>
-          <NavItem active={page === 'APPS2'} icon={CloudUpload} onClick={() => setPage('APPS2')}>
+          <NavItem active={page === 'APPS'} icon={CloudUpload} onClick={() => setPage('APPS')}>
             APPS
           </NavItem>
           {isAdmin && (
@@ -452,9 +451,9 @@ function App() {
                   ? '사용자 가이드'
                   : page === 'MY DASHBOARD'
                     ? 'MY WORKSPACE'
-                    : page === 'APPS'
+                    : page === 'ERP'
                       ? 'ERP'
-                      : page === 'APPS2'
+                      : page === 'APPS'
                         ? 'APPS'
                         : page}
             </strong>
@@ -523,8 +522,12 @@ function App() {
             showToast={showToast}
           />
         )}
-        {page === 'APPS' && <AppsPage showToast={showToast} />}
-        {page === 'APPS2' && <AppsPage showToast={showToast} alternate />}
+        {page === 'ERP' && (
+          <AppsPage employeeId={user.employeeId} scriptName="WebLogin_ERP_MyWorkSpace" />
+        )}
+        {page === 'APPS' && (
+          <AppsPage employeeId={user.employeeId} scriptName="WebLogin_Apps_MyWorkSpace" />
+        )}
         {page === 'TEAM' && isAdmin && <TeamPage user={user} />}
         {page === 'MY INFO' && <MyInfoPage user={user} />}
         {page === 'GUIDE' && <GuidePage isAdmin={isAdmin} onBack={() => setPage('MY DASHBOARD')} />}

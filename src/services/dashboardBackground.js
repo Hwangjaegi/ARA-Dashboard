@@ -2,7 +2,7 @@ import { FM_API, FM_DB, sessionHeaders } from './filemaker';
 
 const FM_LAYOUT = 'T_Employee';
 const CONTAINER_FIELD = '대시보드배경';
-const GET_BACKGROUND_SCRIPT = 'Get DashBoard Img';
+const GET_BACKGROUND_SCRIPT = '배경화면 이미지 가져오기';
 
 async function readResponse(response) {
   const text = await response.text();
