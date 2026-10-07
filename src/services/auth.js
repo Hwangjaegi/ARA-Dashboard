@@ -1,6 +1,6 @@
-const FM_DB = 'ARAERP';
+import { FM_API, FM_DB, sessionHeaders } from './filemaker';
+
 const FM_LAYOUT = 'T_Employee';
-const FM_API = '/fm-api/fmi/data/vLatest';
 
 function escapeFindValue(value) {
   return value.replace(/[\\?*#@=<>!~]/g, '\\$&');
@@ -17,7 +17,7 @@ export async function login(username, password) {
   try {
     const sessionResponse = await fetch(`${FM_API}/databases/${FM_DB}/sessions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sessionHeaders(),
       body: '{}',
     });
     const sessionData = await readResponse(sessionResponse);
@@ -26,16 +26,23 @@ export async function login(username, password) {
       throw new Error(sessionData.messages?.[0]?.message || 'FileMaker 세션을 만들지 못했습니다.');
     }
 
-    const findResponse = await fetch(`${FM_API}/databases/${FM_DB}/layouts/${encodeURIComponent(FM_LAYOUT)}/_find`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        query: [{ 'Login ID': `==${escapeFindValue(username)}`, 'Login PW': `==${escapeFindValue(password)}` }],
-        limit: '1',
-      }),
-    });
+    const findResponse = await fetch(
+      `${FM_API}/databases/${FM_DB}/layouts/${encodeURIComponent(FM_LAYOUT)}/_find`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          query: [
+            {
+              'Login ID': `==${escapeFindValue(username)}`,
+              'Login PW': `==${escapeFindValue(password)}`,
+            },
+          ],
+          limit: '1',
+        }),
+      },
+    );
     const findData = await readResponse(findResponse);
-    console.log('Find Data:', findData); // 디버깅용 로그
     const record = findData.response?.data?.[0];
 
     const findCode = String(findData.messages?.[0]?.code || '');
@@ -45,7 +52,6 @@ export async function login(username, password) {
     if (findCode === '401' || !record) throw new Error('아이디 또는 비밀번호를 확인해 주세요.');
 
     const fieldData = record.fieldData || {};
-    console.log('Field Data:', fieldData); // 디버깅용 로그
     const teamId = String(fieldData._TeamID || '').trim();
     const jobTitle = String(fieldData.JobTitleKor || '').trim();
     const teamLeadSelection = String(fieldData['팀장선택'] || '').trim();
@@ -55,20 +61,31 @@ export async function login(username, password) {
 
     if (teamId) {
       try {
-        const teamResponse = await fetch(`${FM_API}/databases/${FM_DB}/layouts/${encodeURIComponent(FM_LAYOUT)}/_find`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ query: [{ _TeamID: `==${escapeFindValue(teamId)}` }], limit: '100' }),
-        });
+        const teamResponse = await fetch(
+          `${FM_API}/databases/${FM_DB}/layouts/${encodeURIComponent(FM_LAYOUT)}/_find`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              query: [
+                {
+                  _TeamID: `==${escapeFindValue(teamId)}`,
+                  재직구분: '==Inoffice',
+                },
+              ],
+              limit: '100',
+            }),
+          },
+        );
         const teamData = await readResponse(teamResponse);
-        console.log('Team Data:', teamData); // 디버깅용 로그
         const teamCode = String(teamData.messages?.[0]?.code || '');
         if (!teamResponse.ok && teamCode !== '401') {
-          teamLookupMessage = '팀원 조회에 실패했습니다. T_Employee 레이아웃의 _TeamID 필드를 확인해 주세요.';
+          teamLookupMessage =
+            '팀원 조회에 실패했습니다. T_Employee 레이아웃의 _TeamID 필드를 확인해 주세요.';
         } else {
           teamMembers = (teamData.response?.data || [])
-            .filter(member => String(member.recordId) !== String(record.recordId))
-            .map(member => ({
+            .filter((member) => String(member.recordId) !== String(record.recordId))
+            .map((member) => ({
               id: member.recordId,
               employeeId: member.fieldData?.__ID || '',
               name: member.fieldData?.Name || member.fieldData?.NameEng || '이름 미등록',
@@ -104,13 +121,15 @@ export async function login(username, password) {
           englishName: fieldData.NameEng || '',
           jobTitle,
           teamLeadSelection,
-          responsibility: isPresident ? '총괄책임자' : isTeamLead ? '팀장' : '팀원',
+          responsibility: isPresident ? 'CEO' : isTeamLead ? '팀장' : '팀원',
         },
       },
     };
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error('FileMaker에 연결하지 못했습니다. Data API와 Vite 프록시 설정을 확인해 주세요.');
+      throw new Error(
+        'FileMaker에 연결하지 못했습니다. Data API와 Vite 프록시 설정을 확인해 주세요.',
+      );
     }
     throw error;
   } finally {
